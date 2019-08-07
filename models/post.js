@@ -6,6 +6,6 @@ const postSchema = new Schema({
   imageUrl: {type: String, required: true},
   content: {type: String, required: true},
   creator: {type: Object, require: true}
-}, {timestamp: true});
+}, {timestamps: true});
 
 module.exports = mongoose.model('Post', postSchema);

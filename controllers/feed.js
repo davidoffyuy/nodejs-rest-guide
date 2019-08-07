@@ -120,5 +120,27 @@ exports.editPost = (req, res, next) => {
   .catch(error => {
     next(error);
   })
+}
 
+exports.deletePost = (req, res, next) => {
+  const postId = req.params.postId;
+
+  Post.findById(postId)
+  .then(post => {
+    if (!post) {
+      const error = new Error('Could not find post');
+      error.statusCode = 404;
+      throw error;
+    }
+    // if Post owner does not match, throw error...
+
+    deleteFile(path.join(rootDir, post.imageUrl));  
+    return Post.findByIdAndDelete(postId);
+  })
+  .then(post => {
+    res.status(200).json({message: "Post Deleted", post: post});
+  })
+  .catch(error => {
+    next(error);
+  })
 }

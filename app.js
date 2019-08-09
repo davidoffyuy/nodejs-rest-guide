@@ -8,6 +8,7 @@ const MONGODB_URI = 'mongodb+srv://nodejsguide:nodejsguide@cluster0-xc044.mongod
 
 // Routes
 const feedRoutes = require('./routes/feed');
+const authRoutes = require('./routes/auth');
 
 // Setup Multer configuration
 const fileStorage = multer.diskStorage({
@@ -27,8 +28,8 @@ const fileFilter = (req, file, cb) => {
 }
 
 // Parser for POST text data
-app.use(bodyParser.json());
 app.use(multer({storage: fileStorage, fileFilter: fileFilter}).single('image'));
+app.use(bodyParser.json());
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
@@ -40,11 +41,13 @@ app.use((req, res, next) => {
 })
 
 app.use('/feed', feedRoutes);
+app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
-  status = error.statusCode || 500;
-  message = error.message;
-  res.status(status).json({message: message});
+  const status = error.statusCode || 500;
+  const message = error.message;
+  const data = error.data;
+  res.status(status).json({message: message, data: data});
 });
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true })

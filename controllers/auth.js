@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+const jwtSecret = require('../private/jwtSecret');
 const { validationResult } = require('express-validator');
 
 exports.signup = (req, res, next) => {
@@ -34,6 +35,7 @@ exports.signup = (req, res, next) => {
 }
 
 exports.login = (req, res, next) => {
+  console.log(jwtSecret);
   const email = req.body.email;
   const password = req.body.password;
   let loadedUser;
@@ -59,7 +61,7 @@ exports.login = (req, res, next) => {
     const token = jwt.sign({
       email: email,
       userId: loadedUser._id.toString()
-    }, 'secretsecret', {
+    }, jwtSecret, {
       expiresIn: '1h'
     });
 

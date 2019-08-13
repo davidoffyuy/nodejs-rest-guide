@@ -4,6 +4,7 @@ const deleteFile = require('../util/file').deleteFile;
 
 const { validationResult } = require('express-validator');
 const Post = require('../models/post');
+const User = require('../models/user');
 
 exports.getPosts = (req, res, next) => {
   console.log('getPosts');
@@ -59,6 +60,8 @@ exports.createPost = (req, res, next) => {
   const content = req.body.content;
   const imageUrl = req.file.path;
 
+  let creator;
+
   if (!req.file) {
     const error = Error('Invalid Image File');
     error.statusCode = 422;
@@ -69,13 +72,27 @@ exports.createPost = (req, res, next) => {
     title: title,
     content: content,
     imageUrl: imageUrl,
-    creator: {name: "David"},
+    creator: req.userId,
   });
+
   post.save()
+  .then(result => {
+    return User.findById(req.userId);
+  })
+  .then(user => {
+    if (!user) {
+      const error = new Error('User Not Found!');
+      throw error;
+    }
+    creator = user;
+    user.posts.push(post);
+    return creator.save();
+  })
   .then(result => {
     res.status(201).json({status: "success",
       message: "Post successfully created",
-      post: result
+      post: post,
+      creator: {_id: creator._id, name: creator.name}
     });
   })
   .catch(err => {

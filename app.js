@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const mongoose = require('mongoose');
 const MONGODB_URI = 'mongodb+srv://nodejsguide:nodejsguide@cluster0-xc044.mongodb.net/shop';
+const isAuth = require('./middleware/is-auth');
 
 // Routes
 const feedRoutes = require('./routes/feed');
@@ -40,8 +41,8 @@ app.use((req, res, next) => {
   next();
 })
 
-app.use('/feed', feedRoutes);
 app.use('/auth', authRoutes);
+app.use('/feed', feedRoutes);
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;

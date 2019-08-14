@@ -10,6 +10,7 @@ const isAuth = require('./middleware/is-auth');
 // Routes
 const feedRoutes = require('./routes/feed');
 const authRoutes = require('./routes/auth');
+const statusRoutes = require('./routes/status');
 
 // Setup Multer configuration
 const fileStorage = multer.diskStorage({
@@ -43,6 +44,7 @@ app.use((req, res, next) => {
 
 app.use('/auth', authRoutes);
 app.use('/feed', feedRoutes);
+app.use('/status', statusRoutes);
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;

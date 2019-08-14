@@ -116,6 +116,11 @@ exports.editPost = (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
+    if (post.creator.toString() !== req.userId ) {
+      const error = new Error('User does not have permission');
+      error.statusCode = 403;
+      throw error;
+    }
 
     let imageUrl = req.body.image;
     if (req.file) {
@@ -153,6 +158,7 @@ exports.editPost = (req, res, next) => {
 
 exports.deletePost = (req, res, next) => {
   const postId = req.params.postId;
+  let deletedPost;
 
   Post.findById(postId)
   .then(post => {
@@ -162,12 +168,25 @@ exports.deletePost = (req, res, next) => {
       throw error;
     }
     // if Post owner does not match, throw error...
+    if (post.creator.toString() !== req.userId ) {
+      const error = new Error('User does not have permission');
+      error.statusCode = 403;
+      throw error;
+    }
 
     deleteFile(path.join(rootDir, post.imageUrl));  
     return Post.findByIdAndDelete(postId);
   })
   .then(post => {
-    res.status(200).json({message: "Post Deleted", post: post});
+    deletedPost = post;
+    return User.findById(req.userId);   
+  })
+  .then(user => {
+    user.posts.pull(postId);
+    return user.save();
+  })
+  .then(user => {
+    res.status(200).json({message: "Post Deleted", post: deletedPost});
   })
   .catch(error => {
     next(error);

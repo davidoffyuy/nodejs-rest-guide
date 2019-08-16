@@ -1,6 +1,7 @@
 const path = require('path');
 const rootDir = require('../util/path');
 const deleteFile = require('../util/file').deleteFile;
+const io = require('../socket');
 
 const { validationResult } = require('express-validator');
 const Post = require('../models/post');
@@ -72,6 +73,9 @@ exports.createPost = (req, res, next) => {
     creator: req.userId,
   });
 
+  console.log('new post');
+  console.log(post);
+  
   post.save()
   .then(result => {
     return User.findById(req.userId);
@@ -91,6 +95,7 @@ exports.createPost = (req, res, next) => {
       post: post,
       creator: {_id: creator._id, name: creator.name}
     });
+    io.getIO().emit('post', {action: 'create', post: {...post.toObject(), creator: {_id: creator._id, name: creator.name}}});
   })
   .catch(err => {
     next(err);

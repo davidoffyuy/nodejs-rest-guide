@@ -14,7 +14,7 @@ exports.getPosts = async (req, res, next) => {
   try {
     const totalItems = await Post.find().countDocuments()
 
-    const posts = await Post.find().populate('creator').skip((currentPage - 1) * perPage).limit(perPage);
+    const posts = await Post.find().populate('creator').sort({createdAt: -1}).skip((currentPage - 1) * perPage).limit(perPage);
       
     res.status(200).json({message: 'Posts successfully found',
       posts: posts, 
@@ -111,14 +111,14 @@ exports.editPost = (req, res, next) => {
   }
 
   const postId = req.params.postId;
-  Post.findById(postId)
+  Post.findById(postId).populate('creator')
   .then(post => {
     if (!post) {
       const error = new Error('Could not find post');
       error.statusCode = 404;
       throw error;
     }
-    if (post.creator.toString() !== req.userId ) {
+    if (post.creator._id.toString() !== req.userId ) {
       const error = new Error('User does not have permission');
       error.statusCode = 403;
       throw error;
@@ -147,11 +147,13 @@ exports.editPost = (req, res, next) => {
     post.imageUrl = imageUrl;
     return post.save()
   })
-  .then(result => {
+  .then(post => {
     res.status(200).json({status: "success",
       message: "Post successfully saved",
-      post: result
+      post: post
     });
+
+    io.getIO().emit('post', {action: 'edit', post: post});
   })
   .catch(error => {
     next(error);

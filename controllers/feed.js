@@ -191,6 +191,7 @@ exports.deletePost = (req, res, next) => {
   })
   .then(user => {
     res.status(200).json({message: "Post Deleted", post: deletedPost});
+    io.getIO().emit('post', {action: 'delete', post: deletedPost});
   })
   .catch(error => {
     next(error);
